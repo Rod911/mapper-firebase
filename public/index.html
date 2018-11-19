@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mapper</title>
+  <link rel="stylesheet" type="css" media="screen" href="css/main.css" />
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+    crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns"
+    crossorigin="anonymous">
+
+  <!-- update the version number as needed -->
+  <script defer src="/__/firebase/5.5.8/firebase-app.js"></script>
+  <!-- include only the Firebase features as you need -->
+  <script defer src="/__/firebase/5.5.8/firebase-auth.js"></script>
+  <script defer src="/__/firebase/5.5.8/firebase-database.js"></script>
+  <!-- <script defer src="/__/firebase/5.5.8/firebase-messaging.js"></script> -->
+  <!-- <script defer src="/__/firebase/5.5.8/firebase-storage.js"></script> -->
+  <!-- initialize the SDK after all desired features are loaded -->
+  <script defer src="/__/firebase/init.js"></script>
+
+</head>
+
+<body>
+  <datalist id="suggestions"></datalist>
+  <nav class="navbar navbar-dark bg-dark static-top">
+    <a class="navbar-brand" href="index.html">
+      <h1 class="display-4">Mapper</h1>
+    </a>
+    <div class="d-block mb-2 ">Search for your bus in Mangalore City</div>
+
+  </nav>
+  <div class="container-form">
+    <form action="map.html">
+      <div class="form-group ">
+        <label for="source">Source</label>
+        <input type="text" name="source" onkeyup="updateSource()" id="source" class="form-control" list="suggestions"
+          required>
+      </div>
+      <div class="form-group ">
+        <label for="destination">Destination</label>
+        <input type="text" name="destination" onkeyup="updateDest();" id="destination" class="form-control" list="suggestions"
+          required>
+      </div>
+        <div class="buttons">
+        <input type="submit" value="Search" class="btn btn-primary">
+        <input type="reset" value="X" class="btn btn-disabled">
+      </div>
+    </form>
+    <div class="divider">
+      <h3>OR</h3>
+    </div>
+    <form action="bus.html">
+      <div class="form-group ">
+        <label for="bus">Search by bus number</label>
+        <input type="text" name="bus" id="bus" class="form-control">
+      </div>
+      <div class="buttons">
+        <input type="submit" value="Search" class="btn btn-primary">
+        <input type="reset" value="X" class="btn btn-disabled">
+      </div>
+    </form>
+
+  </div>
+  
+<script src="https://www.gstatic.com/firebasejs/5.5.8/firebase.js"></script>
+<script src="main.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyAwlnnFsrANIiEaPSrQ8SBf1pC0G8Mz3lI",
+    authDomain: "mapper-malc.firebaseapp.com",
+    databaseURL: "https://mapper-malc.firebaseio.com",
+    projectId: "mapper-malc",
+    storageBucket: "mapper-malc.appspot.com",
+    messagingSenderId: "565691574057"
+  };
+  firebase.initializeApp(config);
+</script>
+   <script>
+    // Get a reference to the database service
+    var ref = firebase.database().ref();
+    var stopList;
+    var database;
+    ref.on("value", function(snapshot) {
+      database=snapshot.val();
+      findStops();
+    }, function (error) {
+      alert("Error: " + error.code);
+    });
+
+
+    async function updateDatalist(box) {
+      var text = document.getElementById(box).value;
+      var datalist = document.getElementById("suggestions");
+      datalist.innerHTML = "";
+      stopList.forEach(stop => {
+        if (stop.toUpperCase().startsWith(text.toUpperCase())) {
+          var option = document.createElement("option");
+          option.value = stop;
+          datalist.appendChild(option);
+        }
+        console.log(datalist.childElementCount);
+      });
+    }
+
+    function updateSource() {
+      updateDatalist("source");
+    }
+
+    function updateDest() {
+      updateDatalist("destination");
+    }
+
+</script>
+</body>
+
+</html>

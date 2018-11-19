@@ -1,0 +1,56 @@
+
+.container-form {
+    padding: 20px 10px;
+}
+
+.container-form form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+nav {
+    color: azure;
+    position: relative;
+    min-height: 110px;
+}
+
+nav div {
+    position: absolute;
+    bottom: 0;
+    right: 16px;
+}
+
+nav a {
+    position: absolute;
+    top: 0px;
+    left: 16px;
+}
+
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+body div {
+    padding-top: 5px;
+}
+
+.divider h3{
+    max-width: 100%;
+    text-align: center;
+    margin: 70px auto 20px auto;
+}
+
+.buttons .btn {
+    width: 100%;
+}
+
+.buttons .btn-primary {
+    float: left;
+    width: 90%;
+}
+
+.buttons .btn-disabled {
+    float: right;
+    width: 10%;
+}
