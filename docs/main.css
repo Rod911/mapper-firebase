@@ -54,3 +54,10 @@ body div {
     float: right;
     width: 10%;
 }
+
+svg {
+    position: static;
+    width: 100%;
+    margin: 30% auto 0 auto;
+    height:120px;
+}

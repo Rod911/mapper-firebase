@@ -1,66 +1,22 @@
-var routeList = [],
+let routeList = [],
   newList = [],
-  source, destination, tbody, tableContainer;
+  fuzzyList, source, destination, tbody, tableContainer;
 
 function init() {
   urlParams = new URLSearchParams(window.location.search);
-  source = urlParams.get('source').trim();
-  destination = urlParams.get('destination').trim();
-  if (!source && !destination) {
-    window.location = "/index.html";
+  source = urlParams.get('source');
+  destination = urlParams.get('destination');
+  if (!source || !destination) {
+    window.location = "index.html";
+  }
+  source = source.trim();
+  destination = destination.trim();
+  if (source == destination) {
+    document.getElementById("content").innerHTML = "<h3 class='container'>Source and Destinations are identical</h3>";
+    return false;
   }
   tableContainer = document.getElementById("table-container");
-}
-
-function showTable(data) {
-  routeList = JSON.parse(data).Routes;
-  document.write("<table border='1' cellpadding='3' cellspacing='0'>");
-  // console.log(routeList);
-  routeList.forEach(_route => {
-    document.write("<tr><td><b>" + _route.Route + "</b></td>");
-    _route.Stops.forEach(_stop => {
-      document.write("<td>" + _stop + "</td>");
-      _stop = _stop.trim().charAt(0).toUpperCase() + _stop.slice(1);
-      if (!newList.includes(_stop) && (_stop != ""))
-        newList.push(_stop.trim());
-    });
-    document.write("</tr>");
-  });
-  document.write("</table>");
-  window.stop();
-}
-
-function showStops(data) {
-  routeList = JSON.parse(data).Routes;
-  routeList.forEach(_route => {
-    _route.Stops.forEach(_stop => {
-      if (!newList.includes(_stop) && (_stop != ""))
-        newList.push(_stop.trim());
-    });
-  });
-
-  newList = newList.sort();
-  document.write("<ol>");
-  newList.forEach(item => {
-    document.write(
-      "<li>" +
-      // "\""+
-      item +
-      // "\","
-      "</li>"
-    );
-  })
-  document.write("</ol>");
-  console.log(newList.length);
-  window.stop();
-}
-
-function toText(arr) {
-  var string = "";
-  for (let i = 0; i < arr.length; i++) {
-    string += arr[i] + ((i < arr.length - 1) ? ", " : ".");
-  }
-  return string;
+  return true;
 }
 
 function getBetween(_value) {
@@ -90,12 +46,41 @@ function bussesBetween(pointA, pointB) {
   return busses;
 }
 
-function findStops() {
-  stopList = database.allStops;
-}
-
 function findRoute(database) {
   routeList = database.Routes;
+  let list = [];
+  database.allStops.forEach(stop => {
+    list.push(stop);
+  })
+  fuzzyList = FuzzySet(list);
+  let fuzzySource = fuzzyList.get(source);
+  if (fuzzySource[0][0] <= 0.7) {
+    let erString = `<h3>Could not find "${source}"</h3><h4>Try one of these</h4>`;
+    erString += `<ul>`;
+    for (const iterator of fuzzySource) {
+      erString += `<li><a href='map.html?source=${iterator[1]}&destination=${destination}'>${iterator[1]}</a></li>`;
+    }
+    erString += `</ul>`
+    document.getElementById("content").innerHTML = erString;
+    console.log("Similarity Score for " + source + ": " + fuzzySource);
+    return;
+  } else {
+    source = fuzzySource[0][1];
+    let fuzzyDestination = fuzzyList.get(destination);
+    if (fuzzyDestination[0][0] <= 0.7) {
+      let erString = `<h3>Could not find "${destination}"</h3><h4>Try one of these</h4>`;
+      erString += `<ul>`;
+      for (const iterator of fuzzyDestination) {
+        erString += `<li><a href='map.html?source=${source}&destination=${iterator[1]}'>${iterator[1]}</a></li>`;
+      }
+      erString += `</ul>`
+      document.getElementById("content").innerHTML = erString;
+      console.log("Similarity Score for " + destination + ": " + fuzzyDestination);
+      return;
+    } else {
+      destination = fuzzyDestination[0][1];
+    }
+  }
   let busList = [];
   routeList.forEach(route => {
     if (route.Stops.includes(source) && route.Stops.includes(destination)) {
@@ -110,9 +95,8 @@ function findRoute(database) {
     busList.forEach(bus => {
       var tr = document.createElement("tr");
       for (prop in bus) {
-        if (prop === "From" || prop === "To" || prop==="Google/Bing Route Map")
+        if (prop === "From" || prop === "To")
           continue;
-        // console.log(prop);
         var value = bus[prop];
         var td = document.createElement("td");
         var cell;
@@ -127,11 +111,6 @@ function findRoute(database) {
       }
       tbody.appendChild(tr);
     });
-  }
-  if(source==destination){
-    document.getElementById("content").innerHTML="<h3 class='container'>Source and Destinations are identical</h3>";
-  }
-  else{
     
     var tr = document.createElement("tr");
     var td1 = document.createElement("td");
@@ -162,7 +141,7 @@ function findRoute(database) {
       destBus.forEach(routeB => {
         routeA.Stops.forEach(stopA => {
           routeB.Stops.forEach(stopB => {
-            if (stopA === stopB && !stops.includes(stopA)) {
+            if (stopA === stopB && !stops.includes(stopA) && stopA !== source && stopB !== source && stopA !== source && stopB !== source) {
               stops.push(stopA);
               if (!intersectStops.includes(stopA))
                 intersectStops.push(stopA);
@@ -177,13 +156,19 @@ function findRoute(database) {
       tr.appendChild(td1);
 
       var td2 = document.createElement("td");
-      var cell2 = document.createTextNode(stops.length == 0 ? "Not Available" : toText(stops));
-      td2.appendChild(cell2);
-      tr.appendChild(td2);
-
-      tbody.appendChild(tr);
+      if (stops.length > 0) {
+        var cell2 = document.createTextNode(stops.join(", "));
+        td2.appendChild(cell2);
+        tr.appendChild(td2);
+        
+        tbody.appendChild(tr);
+      }
     });
-    var connectList=document.getElementById("connect-bus");
+    let connectList = document.getElementById("indirect-bus");
+    let h4 = document.createElement("h2");
+    h4.textContent = "Switch busses at:";
+    connectList.appendChild(h4);
+    let ul = document.createElement("ul");
     intersectStops.forEach(stop=>{
       var li=document.createElement("li");
       var text=document.createTextNode(stop);
@@ -191,7 +176,8 @@ function findRoute(database) {
       link.setAttribute("href","map.html?source="+stop+"&destination="+destination);
       link.appendChild(text);
       li.appendChild(link);
-      connectList.appendChild(li);
+      ul.appendChild(li);
     });
+    connectList.appendChild(ul);
   }
 }

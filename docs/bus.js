@@ -2,17 +2,24 @@ var query = "";
 var busList = [];
 var routeList;
 
-async function findBus(database) {
-    routeList = database.Routes;
+function findBus(routeList) {
     routeList.forEach(obj => {
         if (obj.Route.includes(query)) {
             busList.push(obj);
         }
     });
+    return list();
 }
 
 function list() {
     var divs = document.getElementById("buslist");
+    divs.innerHTML = "";
+    if (busList.length === 0) {
+        var h3 = document.createElement("h3");
+        h3.appendChild(document.createTextNode("No busses found"));
+        divs.appendChild(h3);
+        return;
+    }
     busList.forEach(obj => {
         var div = document.createElement("div");
         var h3 = document.createElement("h3");
@@ -30,9 +37,10 @@ function list() {
         div.appendChild(ol);
         divs.appendChild(div);
     });
+    return true;
 }
 
-async function init() {
+function init() {
     urlParams = new URLSearchParams(window.location.search);
     query = urlParams.get('bus').trim();
     if (!query) {
