@@ -1,4 +1,4 @@
 # Mapper 
 ### Mangalore City travel
 
-https://mapper-malc.firebaseapp.com/
+https://mapper-malc.web.app/
