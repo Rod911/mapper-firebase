@@ -26,6 +26,6 @@
   },
   "homepage": "https://github.com/Rod911/mapper-firebase#readme",
   "dependencies": {
-    "firebase": "^6.4.2"
+    "firebase": "^7.6.0"
   }
 }
